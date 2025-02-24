@@ -13,13 +13,26 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
     "ruff>=0.9.7",
 ]
 
-[tool.tomlscript]
-start = "uv run uvicorn src.app.main:app --host 0.0.0.0 --port 8000 --reload"
-lint = "uv run ruff check"
-format = "uv run ruff format"
+[tool.poe.tasks.lint]
+help = "Perform linting on all files"
+cmd = "uv run ruff check --fix"
+
+[tool.poe.tasks.format]
+help = "Format all files"
+cmd = "uv run ruff format"
+
+[tool.poe.tasks.test]
+help = "Test the app"
+cmd = "uv run pytest"
+deps = ["lint", "format"]
+
+[tool.poe.tasks.start]
+help = "Start the app"
+cmd = "uv run uvicorn src.app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 [tool.ruff]
 # Set the maximum line length to 79.
@@ -30,3 +43,20 @@ line-length = 79
 # overlap with the use of a formatter, like Black, but we can override this behavior by
 # explicitly adding the rule.
 extend-select = ["E501"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra"
+]
+testpaths = [
+    "tests",
+    "integration",
+]
+pythonpath = [
+    ".", "tests"
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"

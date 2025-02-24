@@ -8,7 +8,6 @@ from src.app.config import get_settings
 settings = get_settings()
 
 
-
 def add_middlewares(application: FastAPI) -> None:
     """
     Adds necessary middleware components to the FastAPI application.
