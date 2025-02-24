@@ -21,6 +21,8 @@ class Settings(BaseSettings):
 
     API_PREFIX: str = "/api"
 
+    MAX_IMAGE_SIZE: int = 1024 * 1024 * 10  # 10 MB
+
     model_config = SettingsConfigDict(
         env_file=Path(__file__).parents[1] / ".env", extra="ignore"
     )
