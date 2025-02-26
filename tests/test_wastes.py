@@ -18,5 +18,5 @@ async def test_valid_classify_waste(client: AsyncClient):
 
         response = await client.post("/wastes/classify/", files=files)
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert "class" in response.json()
