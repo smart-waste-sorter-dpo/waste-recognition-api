@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
-from src.app.api.v1 import router as api_v1_router
-from src.app.config import get_settings
+from src.api.v1 import router as api_v1_router
+from src.config import get_settings
 
 settings = get_settings()
 
@@ -26,19 +26,19 @@ def add_middlewares(application: FastAPI) -> None:
         )
 
 
-def create_application() -> FastAPI:
+def create_app() -> FastAPI:
     """
     Creates and configures the FastAPI application instance, setting up
     resources, middlewares, and routing.
     """
 
-    application = FastAPI(
+    app = FastAPI(
         debug=settings.DEBUG,
         title=settings.APP_TITLE,
         description=settings.APP_DESCRIPTION,
         version=settings.APP_VERSION,
     )
 
-    application.include_router(api_v1_router, prefix=settings.API_PREFIX)
+    app.include_router(api_v1_router, prefix=settings.API_PREFIX)
 
-    return application
+    return app

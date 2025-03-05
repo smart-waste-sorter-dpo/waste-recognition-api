@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.dev
+    ports:
+      - target: 8000
+        published: 8000
+        protocol: tcp
+        mode: host
+    volumes:
+      - .:/src
+    environment:
+      - DEBUG=True
+    restart: unless-stopped

@@ -7,13 +7,17 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.115.8",
     "pillow>=11.1.0",
+    "pre-commit>=4.1.0",
     "pydantic-settings>=2.8.0",
+    "uvicorn>=0.34.0",
 ]
 
 [dependency-groups]
 dev = [
+    "pyright>=1.1.394",
     "pytest>=8.3.4",
     "pytest-asyncio>=0.25.3",
+    "pytest-cov>=6.0.0",
     "ruff>=0.9.7",
 ]
 
@@ -27,7 +31,7 @@ cmd = "uv run ruff format"
 
 [tool.poe.tasks.test]
 help = "Test the app"
-cmd = "uv run pytest"
+cmd = "uv run pytest -v --durations=0 --cov"
 deps = ["lint", "format"]
 
 [tool.poe.tasks.start]
@@ -60,3 +64,7 @@ pythonpath = [
 ]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

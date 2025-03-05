@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
 import io
 
-from src.app.config import get_settings
+from src.config import get_settings
 
 
 WASTE_CLASSES = {
