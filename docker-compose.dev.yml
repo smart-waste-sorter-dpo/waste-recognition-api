@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   app:
     build:
@@ -12,4 +14,17 @@ services:
       - .:/src
     environment:
       - DEBUG=True
+      - MODEL_SERVER_HOST=tf_serving
+    depends_on:
+      - tf_serving
+    restart: unless-stopped
+
+  tf_serving:
+    image: tensorflow/serving
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./src/models:/models
+    environment:
+      - MODEL_NAME=trash_classification_model
     restart: unless-stopped

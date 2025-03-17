@@ -34,7 +34,7 @@ help:
 
 # Start the development environment
 up:
-	$(DOCKER_COMPOSE) up -d
+	$(DOCKER_COMPOSE) up -d --build
 
 # Stop the development environment
 down:
@@ -79,6 +79,6 @@ test: lint format type-check
 
 # Start the app using uvicorn
 start:
-	$(UV) run $(UVICORN) src.app.main:app --host 0.0.0.0 --port 8000 --reload
+	$(UV) run $(UVICORN) src.main:app --host 0.0.0.0 --port 8000 --reload
 
 .PHONY: help up down up-prod down-prod migrate install-deps pre-commit pre-commit-install lint format type-check test start

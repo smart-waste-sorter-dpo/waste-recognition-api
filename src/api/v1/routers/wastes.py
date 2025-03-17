@@ -1,11 +1,23 @@
-import random
+import io
+import logging
+import numpy as np
+import httpx
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
-import io
 
 from src.config import get_settings
 
+settings = get_settings()
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/wastes", tags=["Wastes"])
+
+
+TF_SERVING_URL = (
+    "http://tf_serving:8501/v1/models/trash_classification_model:predict"
+)
 
 WASTE_CLASSES = {
     0: "BIODEGRADABLE",
@@ -17,15 +29,43 @@ WASTE_CLASSES = {
     6: "TRASH",
 }
 
-settings = get_settings()
 
+async def predict_image(image: Image.Image) -> tuple[int, float]:
+    """Асинхронное предсказание класса отходов через TensorFlow Serving."""
+    try:
+        # Преобразуем изображение в нужный формат
+        image = image.resize((224, 224)).convert("RGB")
+        image_array = np.array(image) / 255.0
+        image_array = np.expand_dims(
+            image_array, axis=0
+        ).tolist()  # Преобразуем в список для JSON
 
-router = APIRouter(prefix="/wastes", tags=["Wastes"])
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                TF_SERVING_URL, json={"instances": image_array}, timeout=5
+            )
 
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"TensorFlow Serving error: {response.text}",
+            )
 
-@router.get("/")
-async def get_wastes():
-    return JSONResponse(content={"classes": list(WASTE_CLASSES.values())})
+        prediction = response.json().get("predictions", [None])[0]
+        if prediction is None:
+            raise ValueError("Invalid response from TensorFlow Serving")
+
+        predicted_class = int(np.argmax(prediction))
+        confidence = float(np.max(prediction))
+
+        return predicted_class, confidence
+
+    except (httpx.HTTPError, ValueError, KeyError) as e:
+        logger.error(f"Ошибка при предсказании: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid input or prediction request failed.",
+        )
 
 
 @router.post(
@@ -63,6 +103,11 @@ async def classify_waste(file: UploadFile = File(...)) -> JSONResponse:
             detail="Invalid image file.",
         )
 
-    predicted_class = WASTE_CLASSES[random.randint(0, 6)]
+    predicted_class, confidence = await predict_image(image)
 
-    return JSONResponse(content={"class": predicted_class})
+    return JSONResponse(
+        content={
+            "class": WASTE_CLASSES[predicted_class],
+            "confidence": float(confidence),
+        }
+    )
